@@ -117,7 +117,26 @@
       </form>
 
       <p id="status" role="status"></p>
+<hr>
 
+<h2>Upload Leads</h2>
+<p class="intro">
+  Upload a CSV file containing the names and phone numbers
+  of leads you are authorized to contact.
+</p>
+
+<label for="leadFile">Choose CSV file</label>
+<input
+  id="leadFile"
+  type="file"
+  accept=".csv,text/csv"
+/>
+
+<button type="button" id="previewLeads">
+  Preview Leads
+</button>
+
+<div id="leadPreview" role="status"></div>
       <div class="note">
         Each business needs a unique Business ID. This demo page
         is not yet connected to a secure login, so do not use it
