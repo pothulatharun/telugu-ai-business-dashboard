@@ -220,7 +220,7 @@
   businessId.addEventListener("change", loadBusinessSettings);
 
   loadBusinessSettings();
-   document.getElementById("previewLeads").addEventListener("click", function () {
+ document.getElementById("previewLeads").addEventListener("click", async function () {
   const fileInput = document.getElementById("leadFile");
   const preview = document.getElementById("leadPreview");
   const file = fileInput.files[0];
@@ -230,28 +230,45 @@
     return;
   }
 
-  const reader = new FileReader();
+  const businessId = document.getElementById("businessId").value.trim();
 
-  reader.onload = function () {
-    const lines = reader.result
-      .split(/\r?\n/)
-      .filter(line => line.trim() !== "");
+  if (!businessId) {
+    preview.textContent = "Please enter and save your Business ID first.";
+    return;
+  }
 
-    if (lines.length < 2) {
-      preview.textContent = "The CSV needs a header row and at least one lead.";
+  if (!file.name.toLowerCase().endsWith(".csv")) {
+    preview.textContent = "Please choose a .csv file.";
+    return;
+  }
+
+  preview.textContent = "Uploading leads...";
+
+  try {
+    const formData = new FormData();
+    formData.append("file", file);
+
+    const response = await fetch(
+      `https://telugu-ai-voice-agent-backend.onrender.com/upload-leads/${encodeURIComponent(businessId)}`,
+      {
+        method: "POST",
+        body: formData
+      }
+    );
+
+    const result = await response.json();
+
+    if (!response.ok) {
+      preview.textContent = result.detail || "Upload failed. Please check your CSV and Business ID.";
       return;
     }
 
     preview.textContent =
-      "CSV loaded. " + (lines.length - 1) +
-      " possible lead rows found. No calls have been started.";
-  };
-
-  reader.onerror = function () {
-    preview.textContent = "Could not read the selected file.";
-  };
-
-  reader.readAsText(file);
+      `Success! ${result.uploaded_count} leads saved for business ${result.business_id}. No calls were started.`;
+  } catch (error) {
+    preview.textContent =
+      "Could not reach the backend. Check your internet connection and try again.";
+  }
 });
 </script>
 </body>
