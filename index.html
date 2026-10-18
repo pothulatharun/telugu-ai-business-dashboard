@@ -126,45 +126,81 @@
     </section>
   </main>
 
-  <script>
-    document.getElementById("businessForm").addEventListener(
-      "submit",
-      async function (event) {
-        event.preventDefault();
+ <script>
+  const API_URL =
+    "https://telugu-ai-voice-agent-backend.onrender.com/business-config";
 
-        const status = document.getElementById("status");
-        status.textContent = "Saving settings...";
+  const businessId = document.getElementById("businessId");
+  const businessName = document.getElementById("businessName");
+  const formUrl = document.getElementById("formUrl");
+  const status = document.getElementById("status");
+  const businessForm = document.getElementById("businessForm");
 
-        const data = {
-          business_id: document.getElementById("businessId").value.trim(),
-          business_name: document.getElementById("businessName").value.trim(),
-          google_form_url: document.getElementById("formUrl").value.trim()
-        };
+  async function loadBusinessSettings() {
+    const id = businessId.value.trim();
 
-        try {
-          const response = await fetch(
-            "https://telugu-ai-voice-agent-backend.onrender.com/business-config",
-            {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify(data)
-            }
-          );
+    if (!id) return;
 
-          const result = await response.json();
+    status.textContent = "Loading saved settings...";
 
-          if (!response.ok) {
-            throw new Error(result.detail || result.message || "Request failed");
-          }
+    try {
+      const response = await fetch(
+        `${API_URL}/${encodeURIComponent(id)}`
+      );
 
-          status.textContent = "Settings saved successfully.";
-        } catch (error) {
-          status.textContent =
-            "Could not save: " + error.message +
-            ". Connect your actual backend URL before using this page.";
-        }
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(
+          result.detail || "Could not load business settings"
+        );
       }
-    );
-  </script>
+
+      businessName.value = result.business_name || "";
+      formUrl.value = result.google_form_url || "";
+
+      status.textContent = "Saved settings loaded successfully.";
+    } catch (error) {
+      status.textContent =
+        "Could not load settings: " + error.message;
+    }
+  }
+
+  businessForm.addEventListener("submit", async function (event) {
+    event.preventDefault();
+
+    status.textContent = "Saving settings...";
+
+    const data = {
+      business_id: businessId.value.trim(),
+      business_name: businessName.value.trim(),
+      google_form_url: formUrl.value.trim()
+    };
+
+    try {
+      const response = await fetch(API_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data)
+      });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(
+          result.detail || result.message || "Request failed"
+        );
+      }
+
+      status.textContent = "Settings saved successfully.";
+    } catch (error) {
+      status.textContent = "Could not save: " + error.message;
+    }
+  });
+
+  businessId.addEventListener("change", loadBusinessSettings);
+
+  loadBusinessSettings();
+</script>
 </body>
 </html>
