@@ -220,6 +220,39 @@
   businessId.addEventListener("change", loadBusinessSettings);
 
   loadBusinessSettings();
+   document.getElementById("previewLeads").addEventListener("click", function () {
+  const fileInput = document.getElementById("leadFile");
+  const preview = document.getElementById("leadPreview");
+  const file = fileInput.files[0];
+
+  if (!file) {
+    preview.textContent = "Please choose a CSV file first.";
+    return;
+  }
+
+  const reader = new FileReader();
+
+  reader.onload = function () {
+    const lines = reader.result
+      .split(/\r?\n/)
+      .filter(line => line.trim() !== "");
+
+    if (lines.length < 2) {
+      preview.textContent = "The CSV needs a header row and at least one lead.";
+      return;
+    }
+
+    preview.textContent =
+      "CSV loaded. " + (lines.length - 1) +
+      " possible lead rows found. No calls have been started.";
+  };
+
+  reader.onerror = function () {
+    preview.textContent = "Could not read the selected file.";
+  };
+
+  reader.readAsText(file);
+});
 </script>
 </body>
 </html>
